@@ -1,82 +1,93 @@
-
 # Memory Management Simulator
 
-This Python program simulates memory allocation and page replacement algorithms for processes in a system. It allows for flexible configuration of memory size, page size, allocation algorithms, and page replacement strategies.
+This project implements a simple memory management simulation using various memory allocation and page replacement algorithms. It allows you to allocate memory for processes, simulate page access, and handle page faults with specified algorithms.
+
+---
 
 ## Features
 
-- **Memory Allocation Algorithms**:
-  - **First Fit**
-  - **Best Fit**
-  - **Worst Fit**
+1. **Memory Allocation Algorithms**:
+   - First Fit
+   - Best Fit
+   - Worst Fit
 
-- **Page Replacement Algorithms**:
-  - **FIFO (First-In-First-Out)**
-  - **LRU (Least Recently Used)**
+2. **Page Replacement Algorithms**:
+   - FIFO (First In First Out)
+   - LRU (Least Recently Used)
 
-- Tracks memory allocation, deallocation, and page faults.
-- Simulates a sequence of page accesses for processes.
-
----
-
-## How It Works
-
-1. **Processes**: Each process has a unique ID and memory size (in bytes). The memory manager allocates memory based on the selected allocation algorithm.
-2. **Pages**: Memory is divided into fixed-sized pages. Processes are allocated pages as per their memory requirements.
-3. **Page Replacement**: When memory is full, the simulator uses the specified replacement algorithm to evict pages.
+3. **Simulation**:
+   - Allocate memory for processes.
+   - Simulate page accesses and handle page faults.
+   - Track total page faults during the simulation.
 
 ---
 
-## Getting Started
+## How to Use
 
-### Prerequisites
+### 1. Prerequisites
+- Python 3.x is required to run the simulation.
 
-- Python 3.x
+### 2. Running the Simulation
+- Clone or download the repository.
+- Run the `main()` function in the script to execute the memory management simulation.
 
-### Running the Program
+### 3. Key Classes and Methods
+#### **`Process`**
+- Represents a process with the following attributes:
+  - `pid`: Process ID.
+  - `size`: Total memory size required by the process.
+  - `pages`: List of allocated pages.
 
-1. Clone the repository or download the script.
-2. Run the script:
-   ```bash
-   python MMS.py
-   ```
-
-### Configuration
-
-You can configure the following parameters in the `main()` function:
-- **Memory Size**: Total memory size (e.g., 100 units).
-- **Page Size**: Size of each page (e.g., 10 units).
-- **Allocation Algorithm**: Choose from `First Fit`, `Best Fit`, or `Worst Fit`.
-- **Replacement Algorithm**: Choose from `FIFO` or `LRU`.
-
----
-
-## Example Output
-
-1. Processes are allocated memory:
-   ```
-   Process A allocated memory using First Fit.
-   Process B allocated memory using First Fit.
-   Process C allocated memory using First Fit.
-   ```
-
-2. Page access simulation:
-   ```
-   Loaded Page ('A', 1) into memory.
-   Loaded Page ('B', 1) into memory.
-   Replaced Page ('A', 1) with ('C', 1) (LRU).
-   ```
-
-3. Total page faults:
-   ```
-   Total Page Faults: 6
-   ```
+#### **`MemoryManager`**
+- Manages memory allocation and page replacement.
+  - `allocate_memory(process)`: Allocates memory for a given process.
+  - `access_page(process, page_number)`: Simulates a page access.
+  - **Allocation Algorithms**:
+    - `first_fit(process, num_pages_required)`
+    - `best_fit(process, num_pages_required)`
+    - `worst_fit(process, num_pages_required)`
+  - **Replacement Algorithms**:
+    - `fifo_replace(page_id)`
+    - `lru_replace(page_id)`
 
 ---
 
-## Customization
+## Example Simulation
 
-- Add or modify processes by editing the `processes` list in `main()`.
-- Change the sequence of page accesses using the `page_access_sequence` list.
+The `main()` function demonstrates:
+1. Setting up the memory manager with specified memory size, page size, allocation algorithm, and replacement algorithm.
+2. Creating example processes and allocating memory.
+3. Simulating page accesses and handling page faults.
 
----
+```python
+memory_size = 100
+page_size = 10
+allocation_algorithm = "First Fit"
+replacement_algorithm = "LRU"
+
+memory_manager = MemoryManager(memory_size, page_size, allocation_algorithm, replacement_algorithm)
+
+# Example processes
+processes = [
+    Process("A", 40),
+    Process("B", 30),
+    Process("C", 50)
+]
+
+# Allocating memory for processes
+for process in processes:
+    memory_manager.allocate_memory(process)
+
+# Simulating page access
+page_access_sequence = [
+    ("A", 1), ("B", 1), ("A", 2), ("C", 1),
+    ("A", 3), ("C", 2), ("B", 2), ("C", 3),
+    ("A", 4), ("C", 4), ("B", 3), ("C", 5)
+]
+
+for process_id, page_number in page_access_sequence:
+    process = next((p for p in processes if p.pid == process_id), None)
+    if process:
+        memory_manager.access_page(process, page_number)
+
+print(f"Total Page Faults: {memory_manager.page_faults}")
