@@ -91,3 +91,11 @@ for process_id, page_number in page_access_sequence:
         memory_manager.access_page(process, page_number)
 
 print(f"Total Page Faults: {memory_manager.page_faults}")
+```
+## Output
+
+The simulation provides insights such as:
+
+- Memory allocation status for each process.
+- Page faults and replacements during access.
+- Total page faults at the end of the simulation.
