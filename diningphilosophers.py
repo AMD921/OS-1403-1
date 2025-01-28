@@ -1,71 +1,44 @@
-import threading
+from threading import Thread, Semaphore, Lock
 import time
 import random
 
-# Number of philosophers
-N = 5
+# Semaphores and lock for synchronizing print statements
+no_philo = 5
+forks = [Semaphore(1) for i in range(no_philo)]
+status = ["thinking" for i in range(no_philo)]
+print_lock = Lock()
 
-# Semaphore for forks
-forks = [threading.Semaphore(1) for _ in range(N)]
+def philosopher(i):
+    with print_lock:  # Ensures that only one philosopher prints at a time
+        print(f"Philosopher {i} is {status[i]}")
+    
+    time.sleep(0.3)
+    
+    with print_lock:
+        print(f"Philosopher {i} is Hungry")
+    
+    forks[i].acquire()
+    forks[(i+1)%no_philo].acquire()
 
-# Semaphore to prevent deadlock
-room = threading.Semaphore(N - 1)
+    with print_lock:
+        print(f"Philosopher {i} is eating")
+    
+    time.sleep(1)
+    
+    with print_lock:
+        print(f"Philosopher {i} is finished eating and now thinking")
+    
+    forks[i].release()
+    forks[(i+1)%no_philo].release()
 
-# States of philosophers
-states = ["Thinking"] * N
+# Create threads for philosophers
+total = [Thread(target=philosopher, args=[i]) for i in range(no_philo)]
+random.shuffle(total)
 
-# Lock for printing states
-state_lock = threading.Lock()
+# Start all threads
+for i in total:
+    i.start()
 
-# Timer for hunger duration
-hunger_time = [0] * N
-
-def print_states():
-    """Print the current states of philosophers and their hunger times"""
-    with state_lock:
-        status = [f"Philosopher {i}: {states[i]} (Hunger Time: {hunger_time[i]:.2f}s)" for i in range(N)]
-        print("\n".join(status))
-        print("-" * 50)
-
-def philosopher(philosopher_id):
-    global hunger_time
-    while True:
-        # Thinking
-        states[philosopher_id] = "Thinking"
-        print_states()
-        time.sleep(random.uniform(1, 3))
-
-        # Getting hungry
-        states[philosopher_id] = "Hungry"
-        hunger_start = time.time()
-        print_states()
-
-        # Enter the room (prevent deadlock)
-        room.acquire()
-
-        # Acquire forks
-        forks[philosopher_id].acquire()
-        forks[(philosopher_id + 1) % N].acquire()
-
-        # Eating
-        hunger_time[philosopher_id] += time.time() - hunger_start
-        states[philosopher_id] = "Eating"
-        print_states()
-        time.sleep(random.uniform(1, 2))
-
-        # Release forks
-        forks[philosopher_id].release()
-        forks[(philosopher_id + 1) % N].release()
-
-        # Exit the room
-        room.release()
-
-if __name__ == "__main__":
-    threads = []
-    for i in range(N):
-        t = threading.Thread(target=philosopher, args=(i,))
-        threads.append(t)
-        t.start()
-
-    for t in threads:
-        t.join()
+# Wait for all threads to finish
+for i in total:
+    i.join()
